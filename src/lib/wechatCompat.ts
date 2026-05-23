@@ -32,12 +32,49 @@ async function getBase64Image(imgUrl: string): Promise<string> {
     }
 }
 
+/**
+ * Rewrite a CSS `padding` declaration so its left/right values become 0,
+ * while preserving the top/bottom values. Also zero-out any
+ * `padding-left` / `padding-right` declarations.
+ */
+function stripHorizontalPadding(style: string): string {
+    if (!style) return style;
+
+    let result = style.replace(/(^|;)\s*padding\s*:\s*([^;]+);?/gi, (_match, prefix, value) => {
+        const parts = value.trim().split(/\s+/);
+        let top = '0', right = '0', bottom = '0', left = '0';
+        if (parts.length === 1) {
+            top = bottom = parts[0];
+        } else if (parts.length === 2) {
+            top = bottom = parts[0];
+        } else if (parts.length === 3) {
+            top = parts[0];
+            bottom = parts[2];
+        } else if (parts.length >= 4) {
+            top = parts[0];
+            right = '0';
+            bottom = parts[2];
+            left = '0';
+        }
+        right = '0';
+        left = '0';
+        return `${prefix} padding: ${top} ${right} ${bottom} ${left};`;
+    });
+
+    result = result.replace(/(^|;)\s*padding-left\s*:\s*[^;]+;?/gi, '$1 padding-left: 0;');
+    result = result.replace(/(^|;)\s*padding-right\s*:\s*[^;]+;?/gi, '$1 padding-right: 0;');
+
+    return result;
+}
+
 export async function makeWeChatCompatible(html: string, themeId: string): Promise<string> {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
 
     const theme = THEMES.find(t => t.id === themeId) || THEMES[0];
-    const containerStyle = theme.styles.container || '';
+    // Strip horizontal padding from the container style so the pasted article
+    // sits flush against WeChat's own page padding (no double-indent on left/right).
+    const containerStyle = stripHorizontalPadding(theme.styles.container || '');
 
     // 0. Remove internal editor attributes (for click-to-locate feature)
     // These are only used in the editor and should not appear in the final HTML
