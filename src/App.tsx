@@ -5,7 +5,8 @@ import { md, preprocessMarkdown, applyTheme } from './lib/markdown';
 import { markElementIndexes } from './lib/markdownIndexer';
 import { makeWeChatCompatible, cleanInternalAttributes } from './lib/wechatCompat';
 import { THEMES } from './lib/themes';
-import { defaultContent } from './defaultContent';
+import { DEFAULT_CONTENTS } from './defaultContent';
+import { useI18n } from './i18n/core';
 import { findImagePosition, selectTextAreaRange } from './lib/imageSelector';
 import { findElementPosition, type ElementLocation } from './lib/markdownLocator';
 import Header from './components/Header';
@@ -15,8 +16,9 @@ import EditorPanel from './components/EditorPanel';
 import PreviewPanel from './components/PreviewPanel';
 
 export default function App() {
+    const { locale, t } = useI18n();
     const [themeMode, setThemeMode] = useState<'light' | 'dark'>('light');
-    const [markdownInput, setMarkdownInput] = useState<string>(defaultContent);
+    const [markdownInput, setMarkdownInput] = useState<string>(DEFAULT_CONTENTS[locale]);
     const [renderedHtml, setRenderedHtml] = useState<string>('');
     const [activeTheme, setActiveTheme] = useState(THEMES[0].id);
     const [copied, setCopied] = useState(false);
@@ -30,6 +32,15 @@ export default function App() {
     const previewInnerScrollRef = useRef<HTMLDivElement>(null);
     const scrollSyncLockRef = useRef<'editor' | 'preview' | null>(null);
     const scrollLockReleaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const previousLocaleRef = useRef(locale);
+
+    useEffect(() => {
+        // Swap the sample article along with the language, unless the user has already edited it
+        const previousLocale = previousLocaleRef.current;
+        if (previousLocale === locale) return;
+        previousLocaleRef.current = locale;
+        setMarkdownInput((current) => (current === DEFAULT_CONTENTS[previousLocale] ? DEFAULT_CONTENTS[locale] : current));
+    }, [locale]);
 
     useEffect(() => {
         // Enforce light mode as default, do not follow system preferences
@@ -160,7 +171,7 @@ export default function App() {
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
             console.error('Copy failed', err);
-            alert('复制格式失败，请检查浏览器剪贴板权限');
+            alert(t.toolbar.copyFailed);
         } finally {
             setIsCopying(false);
         }
@@ -264,7 +275,7 @@ export default function App() {
                     className={`flex-1 flex items-center justify-center gap-2 py-3 text-[13px] font-semibold transition-colors border-b-2 ${activePanel === 'editor' ? 'text-[#0066cc] dark:text-[#0a84ff] border-[#0066cc] dark:border-[#0a84ff]' : 'text-[#86868b] dark:text-[#a1a1a6] border-transparent'}`}
                 >
                     <PenLine size={15} />
-                    编辑
+                    {t.tabs.editor}
                 </button>
                 <button
                     data-testid="tab-preview"
@@ -272,7 +283,7 @@ export default function App() {
                     className={`flex-1 flex items-center justify-center gap-2 py-3 text-[13px] font-semibold transition-colors border-b-2 ${activePanel === 'preview' ? 'text-[#0066cc] dark:text-[#0a84ff] border-[#0066cc] dark:border-[#0a84ff]' : 'text-[#86868b] dark:text-[#a1a1a6] border-transparent'}`}
                 >
                     <Eye size={15} />
-                    预览
+                    {t.tabs.preview}
                 </button>
             </div>
 

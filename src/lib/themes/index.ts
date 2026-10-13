@@ -7,12 +7,12 @@ export type { Theme };
 export const THEMES: Theme[] = [...classicThemes, ...modernThemes, ...extraThemes];
 
 export interface ThemeGroup {
-  label: string;
+  id: 'classic' | 'modern' | 'extra';
   themes: Theme[];
 }
 
 export const THEME_GROUPS: ThemeGroup[] = [
-  { label: '经典', themes: classicThemes },
-  { label: '潮流', themes: modernThemes },
-  { label: '更多风格', themes: extraThemes },
+  { id: 'classic', themes: classicThemes },
+  { id: 'modern', themes: modernThemes },
+  { id: 'extra', themes: extraThemes },
 ];

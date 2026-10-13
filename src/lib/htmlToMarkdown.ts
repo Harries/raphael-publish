@@ -1,6 +1,7 @@
 import TurndownService from 'turndown';
 // @ts-ignore
 import { gfm } from 'turndown-plugin-gfm';
+import { getMessages } from '../i18n/core';
 
 const turndownService = new TurndownService({
     headingStyle: 'atx',
@@ -18,7 +19,7 @@ turndownService.use(gfm);
 turndownService.addRule('image', {
     filter: 'img',
     replacement: (_content, node: any) => {
-        const alt = node.alt || '图片';
+        const alt = node.alt || getMessages().paste.imageAlt;
         const src = (node.getAttribute?.('src') || node.src || '').trim();
         const title = (node.title || '').replace(/"/g, '\\"');
 
@@ -135,7 +136,7 @@ export function handleSmartPaste(
             .then((dataUrls) => {
                 const markdownImages = dataUrls
                     .filter(Boolean)
-                    .map((src, index) => `![图片${dataUrls.length > 1 ? ` ${index + 1}` : ''}](${src})`)
+                    .map((src, index) => `![${getMessages().paste.imageAlt}${dataUrls.length > 1 ? ` ${index + 1}` : ''}](${src})`)
                     .join('\n\n');
 
                 if (!markdownImages) return;
@@ -143,7 +144,7 @@ export function handleSmartPaste(
             })
             .catch((err) => {
                 console.error('Clipboard image conversion failed:', err);
-                alert('粘贴图片失败，请重试');
+                alert(getMessages().paste.imageFailed);
             });
         return;
     }

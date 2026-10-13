@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { THEMES, THEME_GROUPS, type Theme } from '../lib/themes';
+import { localizeTheme, useI18n } from '../i18n/core';
 
 interface ThemeSelectorProps {
     activeTheme: string;
@@ -36,7 +37,10 @@ export default function ThemeSelector({ activeTheme, onThemeChange }: ThemeSelec
     const [isThemeOpen, setIsThemeOpen] = useState(false);
     const [showBottomFade, setShowBottomFade] = useState(true);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const selectedThemeName = THEMES.find(t => t.id === activeTheme)?.name;
+    const { t } = useI18n();
+    const ts = t.themeSelector;
+    const selectedTheme = THEMES.find(theme => theme.id === activeTheme);
+    const selectedThemeText = selectedTheme ? localizeTheme(selectedTheme, t) : null;
 
     const handleScroll = () => {
         if (!scrollRef.current) return;
@@ -59,7 +63,7 @@ export default function ThemeSelector({ activeTheme, onThemeChange }: ThemeSelec
 
     return (
         <div className="flex items-center flex-wrap gap-2 lg:gap-4 px-4 lg:px-6 py-3 border-r border-transparent md:border-[#00000015] md:dark:border-[#ffffff15] shrink-0">
-            <span className="text-[12px] font-semibold text-[#86868b] uppercase tracking-widest hidden xl:block shrink-0">排版风格</span>
+            <span className="text-[12px] font-semibold text-[#86868b] uppercase tracking-widest hidden xl:block shrink-0">{ts.label}</span>
 
             <div className="flex items-center gap-1.5 bg-[#00000008] dark:bg-[#ffffff10] p-1 rounded-full backdrop-blur-md shrink-0">
                 {pillThemes.map(theme => (
@@ -71,7 +75,7 @@ export default function ThemeSelector({ activeTheme, onThemeChange }: ThemeSelec
                             : 'text-[#86868b] hover:text-[#1d1d1f] dark:text-[#a1a1a6] dark:hover:text-[#f5f5f7]'
                             }`}
                     >
-                        {theme.name.split(' ')[0]}
+                        {localizeTheme(theme, t).name.split(' ')[0]}
                     </button>
                 ))}
             </div>
@@ -81,7 +85,7 @@ export default function ThemeSelector({ activeTheme, onThemeChange }: ThemeSelec
                     onClick={() => setIsThemeOpen(!isThemeOpen)}
                     className={`apple-export-btn flex items-center gap-2 !px-4 !py-1.5 !text-[13px] transition-all ${isInDropdown ? 'bg-white dark:bg-[#2c2c2e] text-[#1d1d1f] dark:text-[#f5f5f7] border-[#00000010] dark:border-[#ffffff10] shadow-sm' : 'border-transparent bg-transparent hover:bg-transparent dark:bg-transparent text-[#86868b] dark:text-[#a1a1a6] shadow-none hover:text-[#1d1d1f] dark:hover:text-[#f5f5f7]'}`}
                 >
-                    {isInDropdown ? selectedThemeName : `全部 ${THEMES.length} 款`}
+                    {isInDropdown ? selectedThemeText?.name : ts.all(THEMES.length)}
                     <ChevronDown size={14} className={`transition-transform duration-300 ${isThemeOpen ? 'rotate-180' : ''}`} />
                 </button>
 
@@ -107,7 +111,7 @@ export default function ThemeSelector({ activeTheme, onThemeChange }: ThemeSelec
                             >
                                 {/* Header */}
                                 <div className="flex items-center justify-between px-5 pt-4 pb-2">
-                                    <span className="text-[15px] font-semibold text-[#1d1d1f] dark:text-[#f5f5f7]">选择排版风格 · {THEMES.length} 款</span>
+                                    <span className="text-[15px] font-semibold text-[#1d1d1f] dark:text-[#f5f5f7]">{ts.panelTitle(THEMES.length)}</span>
                                     <button
                                         onClick={() => setIsThemeOpen(false)}
                                         className="p-1 rounded-full hover:bg-[#00000008] dark:hover:bg-[#ffffff10] transition-colors"
@@ -124,10 +128,10 @@ export default function ThemeSelector({ activeTheme, onThemeChange }: ThemeSelec
                                     style={{ maxHeight: 'min(calc(70vh - 56px), 544px)' }}
                                 >
                                     {THEME_GROUPS.map((group, groupIdx) => (
-                                        <div key={group.label}>
+                                        <div key={group.id}>
                                             <div className={`flex items-center gap-2 ${groupIdx > 0 ? 'mt-4 pt-4 border-t border-[#00000010] dark:border-[#ffffff10]' : 'mt-1'}`}>
-                                                <span className="text-[12px] font-semibold text-[#86868b] dark:text-[#a1a1a6] uppercase tracking-widest">{group.label}</span>
-                                                <span className="text-[11px] text-[#b0b0b5] dark:text-[#666]">{group.themes.length} 款</span>
+                                                <span className="text-[12px] font-semibold text-[#86868b] dark:text-[#a1a1a6] uppercase tracking-widest">{ts.groups[group.id]}</span>
+                                                <span className="text-[11px] text-[#b0b0b5] dark:text-[#666]">{ts.groupCount(group.themes.length)}</span>
                                             </div>
                                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
                                                 {group.themes.map(theme => (
@@ -147,8 +151,8 @@ export default function ThemeSelector({ activeTheme, onThemeChange }: ThemeSelec
                                                             <ThemeSwatch styles={theme.styles} />
                                                             {activeTheme === theme.id && <Check size={14} className="text-[#0066cc] dark:text-[#0a84ff]" />}
                                                         </div>
-                                                        <span className="text-[13px] font-semibold text-[#1d1d1f] dark:text-[#f5f5f7] leading-tight">{theme.name}</span>
-                                                        <span className="text-[11px] text-[#86868b] dark:text-[#a1a1a6] leading-snug line-clamp-2">{theme.description}</span>
+                                                        <span className="text-[13px] font-semibold text-[#1d1d1f] dark:text-[#f5f5f7] leading-tight">{localizeTheme(theme, t).name}</span>
+                                                        <span className="text-[11px] text-[#86868b] dark:text-[#a1a1a6] leading-snug line-clamp-2">{localizeTheme(theme, t).description}</span>
                                                     </button>
                                                 ))}
                                             </div>
@@ -169,8 +173,8 @@ export default function ThemeSelector({ activeTheme, onThemeChange }: ThemeSelec
             {/* Theme description next to selectors */}
             <div className="hidden lg:flex items-center ml-4 pl-4 border-l border-[#00000015] dark:border-[#ffffff15]">
                 <p className="text-[13px] text-[#86868b] dark:text-[#a1a1a6] font-medium tracking-wide truncate max-w-[300px] xl:max-w-[450px]">
-                    <span className="text-[#1d1d1f] dark:text-[#f5f5f7] font-semibold mr-1">{THEMES.find(t => t.id === activeTheme)?.name}：</span>
-                    {THEMES.find(t => t.id === activeTheme)?.description}
+                    <span className="text-[#1d1d1f] dark:text-[#f5f5f7] font-semibold mr-1">{selectedThemeText?.name}{ts.nameSeparator}</span>
+                    {selectedThemeText?.description}
                 </p>
             </div>
         </div>

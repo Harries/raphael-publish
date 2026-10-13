@@ -1,6 +1,7 @@
 import React from 'react';
 import { Wand2 } from 'lucide-react';
 import { handleSmartPaste } from '../lib/htmlToMarkdown';
+import { useI18n } from '../i18n/core';
 
 interface EditorPanelProps {
     markdownInput: string;
@@ -11,6 +12,7 @@ interface EditorPanelProps {
 }
 
 export default function EditorPanel({ markdownInput, onInputChange, editorScrollRef, onEditorScroll, scrollSyncEnabled }: EditorPanelProps) {
+    const { t } = useI18n();
     const onPaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
         handleSmartPaste(e, onInputChange);
     };
@@ -25,7 +27,7 @@ export default function EditorPanel({ markdownInput, onInputChange, editorScroll
                 onChange={(e) => onInputChange(e.target.value)}
                 onPaste={onPaste}
                 onScroll={scrollSyncEnabled ? onEditorScroll : undefined}
-                placeholder="在这里输入 Markdown 内容..."
+                placeholder={t.editor.placeholder}
                 spellCheck={false}
             />
 
@@ -34,12 +36,12 @@ export default function EditorPanel({ markdownInput, onInputChange, editorScroll
                 <div className="flex items-center gap-2 min-w-0">
                     <Wand2 size={14} className="text-[#0066cc] dark:text-[#0a84ff] shrink-0" />
                     <span className="text-[12.5px] font-medium text-[#1d1d1f] dark:text-[#f5f5f7]">
-                        <span className="hidden sm:inline">支持直接粘贴 <span className="text-[#86868b] dark:text-[#a1a1a6]">飞书、Notion或Word等</span> 富文本，自动净化为 Markdown</span>
-                        <span className="sm:hidden">支持直接粘贴 <span className="text-[#86868b] dark:text-[#a1a1a6]">飞书、Notion或Word等</span> 富文本，自动转化</span>
+                        <span className="hidden sm:inline">{t.editor.pasteHintBefore}<span className="text-[#86868b] dark:text-[#a1a1a6]">{t.editor.pasteHintSources}</span>{t.editor.pasteHintAfter}</span>
+                        <span className="sm:hidden">{t.editor.pasteHintBefore}<span className="text-[#86868b] dark:text-[#a1a1a6]">{t.editor.pasteHintSources}</span>{t.editor.pasteHintAfterShort}</span>
                     </span>
                 </div>
                 <div className="text-[12px] font-mono text-[#86868b] dark:text-[#a1a1a6]">
-                    {markdownInput.length} 字
+                    {t.editor.charCount(markdownInput.length)}
                 </div>
             </div>
         </div>

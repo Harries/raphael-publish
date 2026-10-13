@@ -54,6 +54,10 @@
 
 支持多图并排网格布局，通过 `wechatCompat` 引擎确保在微信公众号中完美呈现，不会被折断。
 
+### 多语言界面
+
+界面支持 **10 种语言**：简体中文、繁體中文、English、日本語、한국어、Español、Français、Deutsch、Português、Русский。每种语言有独立 URL（`/` 为简体中文，其余为 `/en/`、`/ja/`、`/zh-tw/` 等），可通过右上角的语言菜单切换。构建时会为每种语言生成带独立 title / description / canonical / hreflang 的静态页面，并自动生成包含所有语言 URL 的 `sitemap.xml` 与 `robots.txt`。新增语言只需在 `src/i18n/locales/` 下添加语言包、在 `src/i18n/content/` 下添加示例文章，并在 `src/i18n/core.ts`、`src/i18n/seo.ts` 与 `src/defaultContent.ts` 中注册。
+
 ### 多端预览
 
 编辑时实时预览，支持手机 (480px)、平板 (768px)、桌面 (PC) 三种视图切换，所见即所得。
